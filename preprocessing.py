@@ -8,18 +8,21 @@ def add_indicators(df):
     df['MACD'] = df['Close'].ewm(span=12).mean() - df['Close'].ewm(span=26).mean()
     df['EMA'] = df['Close'].ewm(span=10).mean()
     df['Volatility'] = df['Close'].rolling(10).std()
+    df['Momentum'] = df['Close'] - df['Close'].shift(5)
+    df['Return'] = df['Close'].pct_change()
     df.fillna(0, inplace=True)
     return df
 
 
 def create_labels(df):
-    df['Target'] = (df['Close'].shift(-1) > df['Close']).astype(int)
+    # Predict strong movement only
+    df['Target'] = ((df['Close'].shift(-1) - df['Close']) / df['Close'] > 0.01).astype(int)
     return df
 
 
 def merge_data(stock_df, news_df):
     # Identify news columns
-    news_cols = [f"Top{i}" for i in range(1, 4)]  # Top1–Top3 only
+    news_cols = [f"Top{i}" for i in range(1, 2)]  # Top1–Top3 only
     # Replace NaN with empty string FIRST
     news_df[news_cols] = news_df[news_cols].fillna("")
     # Convert everything safely to string and join

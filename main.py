@@ -16,7 +16,7 @@ stock = create_labels(stock)
 merged = merge_data(stock, news)
 merged = merged.sort_values('Date')
 merged = merged.ffill()
-merged = merged[:2000] 
+merged = merged[:1000] 
 
 print(news.columns)
 # Tokenizer

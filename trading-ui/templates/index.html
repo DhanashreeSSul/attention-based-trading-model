@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>AlphaSignal — AI Trading Intelligence</title>
+  <link rel="stylesheet" href="/static/style.css"/>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+</head>
+<body>
+
+  <div class="bg-grid"></div>
+  <div class="bg-glow"></div>
+
+  <!-- HEADER -->
+  <header class="header">
+    <div class="logo">
+      <span class="logo-mark">⬡</span>
+      <span class="logo-text">Alpha<strong>Signal</strong></span>
+    </div>
+    <div class="header-meta">
+      <span class="badge">FinBERT + LSTM · Attention Fusion</span>
+      <div class="accuracy-pill" id="accuracyPill">Model Acc: 76.3%</div>
+    </div>
+  </header>
+
+  <!-- HERO -->
+  <section class="hero">
+    <p class="eyebrow">Multimodal Deep Learning · Financial NLP</p>
+    <h1>Predict Market<br/><em>Movement</em></h1>
+    <p class="hero-sub">Fusing FinBERT news sentiment with OHLC price signals<br/>via cross-attention deep learning.</p>
+  </section>
+
+  <!-- INPUT CARD -->
+  <main class="main">
+    <div class="card input-card">
+      <div class="card-label">PREDICTION INPUT</div>
+      <div class="input-row">
+
+        <div class="input-group" style="flex:1.2; min-width:140px">
+          <label for="ticker">Stock Ticker</label>
+          <div class="input-wrap">
+            <span class="input-icon">$</span>
+            <input type="text" id="ticker" placeholder="AAPL" maxlength="6" autocomplete="off"/>
+          </div>
+        </div>
+
+        <div class="input-group" style="flex:1.4; min-width:150px">
+          <label for="startDate">Start Date</label>
+          <input type="date" id="startDate"/>
+        </div>
+
+        <div class="input-group" style="flex:1.4; min-width:150px">
+          <label for="endDate">End Date</label>
+          <input type="date" id="endDate"/>
+        </div>
+
+        <button class="predict-btn" id="predictBtn" onclick="runPrediction()">
+          <span class="btn-text">Predict</span>
+          <span class="btn-arrow">→</span>
+        </button>
+      </div>
+
+      <div class="quick-tickers">
+        <span class="qt-label">Quick:</span>
+        <button class="qt-btn" onclick="setTicker('AAPL')">AAPL</button>
+        <button class="qt-btn" onclick="setTicker('TSLA')">TSLA</button>
+        <button class="qt-btn" onclick="setTicker('NVDA')">NVDA</button>
+        <button class="qt-btn" onclick="setTicker('MSFT')">MSFT</button>
+        <button class="qt-btn" onclick="setTicker('GOOGL')">GOOGL</button>
+        <button class="qt-btn" onclick="setTicker('AMZN')">AMZN</button>
+      </div>
+    </div>
+
+    <!-- SPINNER -->
+    <div class="spinner-wrap" id="spinnerWrap" style="display:none">
+      <div class="spinner-ring"></div>
+      <p class="spinner-text">Running inference…</p>
+      <p class="spinner-sub">FinBERT encoding · LSTM · Attention fusion</p>
+    </div>
+
+    <!-- ERROR -->
+    <div class="error-box" id="errorBox" style="display:none"></div>
+
+    <!-- DEMO NOTICE -->
+    <div class="demo-box" id="demoBox" style="display:none">
+      ⚠️ &nbsp;<strong>Demo Mode</strong> — <code>model.pth</code> not found. Predictions are simulated. Place your trained model file in the same folder as <code>app.py</code>.
+    </div>
+
+    <!-- RESULTS -->
+    <div id="results" style="display:none">
+
+      <!-- Signal + Stats row -->
+      <div class="top-row">
+
+        <!-- Signal card -->
+        <div class="card signal-card" id="signalCard">
+          <div class="card-label">PREDICTION SIGNAL</div>
+          <div class="signal-direction" id="signalDirection">—</div>
+          <div class="conf-label-text">Confidence</div>
+          <div class="conf-bar-wrap">
+            <div class="conf-bar" id="confBar"></div>
+          </div>
+          <div class="conf-value" id="confValue">—</div>
+          <div class="signal-divider"></div>
+          <div class="suggestion-row">
+            <span class="sug-label">AI Suggestion</span>
+            <span class="sug-value" id="suggestionValue">—</span>
+          </div>
+        </div>
+
+        <!-- Stats column -->
+        <div class="stats-col">
+          <div class="card stat-card">
+            <div class="stat-label">TICKER</div>
+            <div class="stat-value amber" id="statTicker">—</div>
+          </div>
+          <div class="card stat-card">
+            <div class="stat-label">CONFIDENCE</div>
+            <div class="stat-value" id="statConf">—</div>
+          </div>
+          <div class="card stat-card">
+            <div class="stat-label">MODEL ACCURACY</div>
+            <div class="stat-value amber" id="statAcc">—</div>
+          </div>
+          <div class="card stat-card">
+            <div class="stat-label">DATE RANGE</div>
+            <div class="stat-value small" id="statRange">—</div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Chart card -->
+      <div class="card chart-card">
+        <div class="chart-header">
+          <div class="card-label">PRICE CHART (LAST 60 TRADING DAYS)</div>
+          <div class="chart-legend">
+            <span class="ld amber-ld"></span>Close
+            <span class="ld green-ld"></span>Prediction Zone
+          </div>
+        </div>
+        <div class="chart-wrap">
+          <canvas id="priceChart"></canvas>
+        </div>
+      </div>
+
+      <!-- News card -->
+      <div class="card news-card">
+        <div class="card-label">NEWS HEADLINES USED FOR PREDICTION</div>
+        <ul class="news-list" id="newsList"></ul>
+      </div>
+
+    </div><!-- /results -->
+  </main>
+
+  <footer class="footer">
+    AlphaSignal &nbsp;·&nbsp; Attention-Based Multimodal DL &nbsp;·&nbsp; Not financial advice
+  </footer>
+
+  <script src="/static/script.js"></script>
+</body>
+</html>

@@ -6,7 +6,7 @@ from sklearn.metrics import accuracy_score
 def train_model(model,
                 X_price_train, X_text_ids_train, X_mask_train, y_train,
                 X_price_test, X_text_ids_test, X_mask_test, y_test,
-                epochs=5):
+                epochs=14):
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print("Using device:", device)
@@ -71,3 +71,7 @@ def train_model(model,
         test_acc = accuracy_score(y_test.cpu().numpy(), test_preds)
 
         print(f"Epoch {epoch+1} completed | Loss: {total_loss/len(train_loader):.4f} | Train Acc: {train_acc:.4f} | Test Acc: {test_acc:.4f}")
+
+
+    torch.save(model.state_dict(), "model.pth")
+    print("Model saved!")
