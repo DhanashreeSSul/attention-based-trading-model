@@ -81,7 +81,7 @@ class MultimodalModel(nn.Module):
 #  LOAD WEIGHTS
 # ──────────────────────────────────────────────
 DEVICE     = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-MODEL_PATH = "model.pth"
+MODEL_PATH = "../model.pth"
 DEMO_MODE  = not os.path.exists(MODEL_PATH)
 
 model = MultimodalModel(price_dim=8)
